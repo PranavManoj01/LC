@@ -1,78 +1,137 @@
-import { useEffect, useState } from 'react';
-import { Line } from 'react-chartjs-2';
+import { useEffect, useMemo, useState } from 'react';
+import { Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
   PointElement,
-  LineElement,
+  BarElement,
   Title,
   Tooltip,
   Legend,
-  TimeScale
 } from 'chart.js';
-import 'chartjs-adapter-date-fns';
+import './App.css';
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, TimeScale);
+ChartJS.register(CategoryScale, LinearScale, PointElement, BarElement, Title, Tooltip, Legend);
+
+type ProgressEntry = {
+  date: string;
+  count: number;
+};
+
+type Stats = Record<string, ProgressEntry[]>;
 
 function App() {
-  const [chartData, setChartData] = useState<any>(null);
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch the JSON file from the public folder
     fetch('/stats.json')
       .then(res => res.json())
-      .then(data => {
-        const datasets = Object.keys(data).map((user, index) => {
-          // Color palette for lines
-          const colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'];
-          const color = colors[index % colors.length];
-          
-          return {
-            label: user,
-            data: data[user].map((entry: any) => ({
-              x: entry.date,
-              y: entry.count
-            })),
-            borderColor: color,
-            backgroundColor: color,
-            tension: 0.1,
-            pointRadius: 4,
-          };
-        });
-
-        setChartData({ datasets });
-      })
-      .catch(err => console.error("Error loading stats:", err));
+      .then(data => setStats(data))
+      .catch(err => console.error('Error loading stats:', err))
+      .finally(() => setLoading(false));
   }, []);
 
-  if (!chartData) return <div style={{textAlign: 'center', marginTop: '50px'}}>Loading stats...</div>;
+  const leaderboard = useMemo(() => {
+    if (!stats) return [];
+
+    return Object.entries(stats)
+      .map(([user, entries]) => {
+        const latest = entries[entries.length - 1];
+        const previous = entries[entries.length - 2];
+        const gain = previous ? latest.count - previous.count : 0;
+
+        return {
+          user,
+          latestCount: latest?.count ?? 0,
+          lastUpdated: latest?.date ?? '-',
+          gain,
+        };
+      })
+      .sort((a, b) => b.latestCount - a.latestCount);
+  }, [stats]);
+
+  const analysisData = useMemo(() => {
+    if (!leaderboard.length) return null;
+
+    return {
+      labels: leaderboard.map(item => item.user),
+      datasets: [
+        {
+          label: 'Problems Solved',
+          data: leaderboard.map(item => item.latestCount),
+          backgroundColor: ['#8b5cf6', '#7c3aed', '#6d28d9', '#5b21b6', '#4c1d95', '#3b0764'],
+          borderRadius: 10,
+          borderSkipped: false,
+        },
+      ],
+    };
+  }, [leaderboard]);
+
+  if (loading) return <div className="status">Loading stats...</div>;
+
+  if (!leaderboard.length || !analysisData) {
+    return (
+      <div className="status">
+        No stats found. Run <code>scripts/update_progress.py</code> to generate data.
+      </div>
+    );
+  }
 
   return (
-    <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '40px', fontFamily: 'sans-serif' }}>
-      <h1 style={{textAlign: 'center', marginBottom: '40px'}}>🏆 LeetCode Leaderboard</h1>
-      <div style={{ backgroundColor: '#f9f9f9', padding: '20px', borderRadius: '10px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
-        <Line 
-          data={chartData} 
-          options={{
-            responsive: true,
-            scales: {
-              x: {
-                type: 'time',
-                time: { unit: 'day' },
-                title: { display: true, text: 'Date' }
+    <main className="page">
+      <section className="leaderboard-panel">
+        <h1>LeetCode Leaderboard</h1>
+        <p className="subtitle">Minimal tracker for your squad</p>
+        <div className="leaderboard-grid">
+          {leaderboard.map((entry, index) => (
+            <article className="leaderboard-card" key={entry.user}>
+              <div className="card-rank">#{index + 1}</div>
+              <div className="card-name">{entry.user}</div>
+              <div className="card-total">{entry.latestCount}</div>
+              <div className="card-meta">
+                <span>{entry.gain >= 0 ? `+${entry.gain}` : entry.gain} recent</span>
+                <span>{entry.lastUpdated}</span>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="analysis-panel">
+        <h2>Problem Analysis</h2>
+        <p className="subtitle">Total solved problems per user</p>
+        <div className="chart-wrap">
+          <Bar
+            data={analysisData}
+            options={{
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  backgroundColor: '#1e1231',
+                  borderColor: '#4c1d95',
+                  borderWidth: 1,
+                },
               },
-              y: {
-                title: { display: true, text: 'Problems Solved' }
-              }
-            },
-            plugins: {
-              legend: { position: 'bottom' }
-            }
-          }} 
-        />
-      </div>
-    </div>
+              scales: {
+                x: {
+                  ticks: { color: '#d4c7f6' },
+                  grid: { display: false },
+                },
+                y: {
+                  ticks: { color: '#d4c7f6', stepSize: 10 },
+                  grid: { color: 'rgba(212, 199, 246, 0.16)' },
+                  beginAtZero: true,
+                },
+              },
+            }}
+          />
+        </div>
+      </section>
+    </main>
   );
 }
 
