@@ -86,6 +86,13 @@ h2 {
   margin-top: 0.35rem;
 }
 
+.helper-note {
+  margin: 0.7rem 0 0;
+  text-align: center;
+  color: #b39fdf;
+  font-size: 0.86rem;
+}
+
 .status {
   min-height: 100vh;
   display: grid;

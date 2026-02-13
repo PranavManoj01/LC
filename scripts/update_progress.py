@@ -10,7 +10,7 @@ FRIENDS = ["Pranav_MP","khizer12"]
 JSON_FILE = "frontend/public/stats.json"
 LEETCODE_URL = "https://leetcode.com/graphql"
 
-def get_solved_count(username):
+def get_solved_stats(username):
     query = """
     query userProblemsSolved($username: String!) {
       matchedUser(username: $username) {
@@ -29,8 +29,19 @@ def get_solved_count(username):
         if 'errors' in data:
             print(f"Error fetching {username}: {data['errors']}")
             return None
-        # Index 0 is usually 'All', 1 is 'Easy', 2 'Medium', 3 'Hard'
-        return data['data']['matchedUser']['submitStats']['acSubmissionNum'][0]['count']
+        stats = data['data']['matchedUser']['submitStats']['acSubmissionNum']
+        counts = {'All': 0, 'Easy': 0, 'Medium': 0, 'Hard': 0}
+        for item in stats:
+            difficulty = item.get('difficulty')
+            if difficulty in counts:
+                counts[difficulty] = item.get('count', 0)
+
+        return {
+            'count': counts['All'],
+            'easy': counts['Easy'],
+            'medium': counts['Medium'],
+            'hard': counts['Hard'],
+        }
     except Exception as e:
         print(f"Failed to fetch {username}: {e}")
         return None
@@ -52,9 +63,9 @@ def main():
     # 2. Fetch new data
     updated = False
     for user in FRIENDS:
-        count = get_solved_count(user)
+        solved = get_solved_stats(user)
         
-        if count is not None:
+        if solved is not None:
             if user not in history:
                 history[user] = []
             
@@ -62,14 +73,28 @@ def main():
             last_entry = history[user][-1] if history[user] else None
             
             if last_entry and last_entry['date'] == today:
-                if last_entry['count'] != count:
-                    last_entry['count'] = count # Update today's count if it changed
+                if (
+                    last_entry.get('count') != solved['count']
+                    or last_entry.get('easy') != solved['easy']
+                    or last_entry.get('medium') != solved['medium']
+                    or last_entry.get('hard') != solved['hard']
+                ):
+                    last_entry['count'] = solved['count']
+                    last_entry['easy'] = solved['easy']
+                    last_entry['medium'] = solved['medium']
+                    last_entry['hard'] = solved['hard']
                     updated = True
-                    print(f"Updated {user} (Same Day): {count}")
+                    print(f"Updated {user} (Same Day): {solved['count']}")
             else:
-                history[user].append({"date": today, "count": count})
+                history[user].append({
+                    "date": today,
+                    "count": solved['count'],
+                    "easy": solved['easy'],
+                    "medium": solved['medium'],
+                    "hard": solved['hard'],
+                })
                 updated = True
-                print(f"Added {user}: {count}")
+                print(f"Added {user}: {solved['count']}")
 
     # 3. Save
     if updated:
