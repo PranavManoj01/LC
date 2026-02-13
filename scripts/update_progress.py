@@ -2,6 +2,8 @@ import requests
 import json
 import datetime
 import os
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 # --- CONFIGURATION ---
 FRIENDS = ["Pranav_MP","khizer12","khrshtt"] 
@@ -9,11 +11,53 @@ FRIENDS = ["Pranav_MP","khizer12","khrshtt"]
 
 JSON_FILE = "frontend/public/stats.json"
 LEETCODE_URL = "https://leetcode.com/graphql"
+REQUEST_HEADERS = {
+    "Content-Type": "application/json",
+    "Referer": "https://leetcode.com/",
+    "Origin": "https://leetcode.com",
+    "User-Agent": "Mozilla/5.0 (compatible; LC-Stats-Bot/1.0)",
+}
+
+
+def build_session():
+    session = requests.Session()
+    retries = Retry(
+        total=3,
+        backoff_factor=1,
+        status_forcelist=[429, 500, 502, 503, 504],
+        allowed_methods=["POST"],
+        raise_on_status=False,
+    )
+    adapter = HTTPAdapter(max_retries=retries)
+    session.mount("https://", adapter)
+    session.mount("http://", adapter)
+    return session
+
+
+def extract_counts(ac_submission_num):
+    counts = {'All': 0, 'Easy': 0, 'Medium': 0, 'Hard': 0}
+    for item in ac_submission_num or []:
+        difficulty = item.get('difficulty')
+        if difficulty in counts:
+            counts[difficulty] = item.get('count', 0)
+
+    return {
+        'count': counts['All'],
+        'easy': counts['Easy'],
+        'medium': counts['Medium'],
+        'hard': counts['Hard'],
+    }
 
 def get_solved_stats(username):
     query = """
     query userProblemsSolved($username: String!) {
       matchedUser(username: $username) {
+        submitStatsGlobal {
+          acSubmissionNum {
+            difficulty
+            count
+          }
+        }
         submitStats {
           acSubmissionNum {
             difficulty
@@ -24,27 +68,54 @@ def get_solved_stats(username):
     }
     """
     try:
-        response = requests.post(LEETCODE_URL, json={"query": query, "variables": {"username": username}}, timeout=10)
+        session = build_session()
+        response = session.post(
+            LEETCODE_URL,
+            json={"query": query, "variables": {"username": username}},
+            headers=REQUEST_HEADERS,
+            timeout=20,
+        )
+        if response.status_code != 200:
+            print(f"Error fetching {username}: HTTP {response.status_code}")
+            return None
+
         data = response.json()
         if 'errors' in data:
             print(f"Error fetching {username}: {data['errors']}")
             return None
-        stats = data['data']['matchedUser']['submitStats']['acSubmissionNum']
-        counts = {'All': 0, 'Easy': 0, 'Medium': 0, 'Hard': 0}
-        for item in stats:
-            difficulty = item.get('difficulty')
-            if difficulty in counts:
-                counts[difficulty] = item.get('count', 0)
 
-        return {
-            'count': counts['All'],
-            'easy': counts['Easy'],
-            'medium': counts['Medium'],
-            'hard': counts['Hard'],
-        }
+        matched_user = (data.get('data') or {}).get('matchedUser')
+        if not matched_user:
+            print(f"Error fetching {username}: matchedUser was null. Check username spelling/case.")
+            return None
+
+        stats = (
+            ((matched_user.get('submitStatsGlobal') or {}).get('acSubmissionNum'))
+            or ((matched_user.get('submitStats') or {}).get('acSubmissionNum'))
+            or []
+        )
+        return extract_counts(stats)
     except Exception as e:
         print(f"Failed to fetch {username}: {e}")
         return None
+
+
+def normalize_history(history):
+    normalized = False
+    for user, entries in history.items():
+        if not isinstance(entries, list):
+            continue
+        for entry in entries:
+            if not isinstance(entry, dict):
+                continue
+            if 'count' not in entry:
+                entry['count'] = 0
+                normalized = True
+            for field in ('easy', 'medium', 'hard'):
+                if field not in entry:
+                    entry[field] = 0
+                    normalized = True
+    return normalized
 
 def main():
     # 1. Load existing data
@@ -57,11 +128,12 @@ def main():
     else:
         history = {}
 
+    updated = normalize_history(history)
+
     today = datetime.datetime.now().strftime('%Y-%m-%d')
     print(f"--- Running Update for {today} ---")
 
     # 2. Fetch new data
-    updated = False
     for user in FRIENDS:
         solved = get_solved_stats(user)
         
