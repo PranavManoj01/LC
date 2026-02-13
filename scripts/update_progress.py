@@ -4,7 +4,7 @@ import datetime
 import os
 
 # --- CONFIGURATION ---
-FRIENDS = ["Pranav_MP","khizer12"] 
+FRIENDS = ["Pranav_MP","khizer12","khrshtt"] 
 # ^^^ REPLACE THESE with real LeetCode handles!
 
 JSON_FILE = "frontend/public/stats.json"
