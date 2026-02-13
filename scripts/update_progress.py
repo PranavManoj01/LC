@@ -6,7 +6,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 # --- CONFIGURATION ---
-FRIENDS = ["Pranav_MP","khizer12","khrshtt"] 
+FRIENDS = ["Pranav_MP","khizer12","khrshtt","theLumberJack79"] 
 # ^^^ REPLACE THESE with real LeetCode handles!
 
 JSON_FILE = "frontend/public/stats.json"
