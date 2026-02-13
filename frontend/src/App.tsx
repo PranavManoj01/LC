@@ -63,7 +63,7 @@ function App() {
       new Set(Object.values(stats).flatMap(entries => entries.map(entry => entry.date))),
     ).sort((a, b) => a.localeCompare(b));
 
-    const lineColors = ['#c4b5fd', '#a78bfa', '#8b5cf6', '#7c3aed', '#6d28d9', '#5b21b6'];
+    const lineColors = ['#9bf6c4', '#74e6ad', '#4fd695', '#2fbf7b', '#1aa364', '#10804d'];
 
     return {
       labels,
@@ -97,7 +97,7 @@ function App() {
             const latest = stats[item.user][stats[item.user].length - 1];
             return latest?.easy ?? 0;
           }),
-          backgroundColor: '#7dd3fc',
+          backgroundColor: '#6be19d',
         },
         {
           label: 'Medium',
@@ -105,7 +105,7 @@ function App() {
             const latest = stats[item.user][stats[item.user].length - 1];
             return latest?.medium ?? 0;
           }),
-          backgroundColor: '#f59e0b',
+          backgroundColor: '#b8de53',
         },
         {
           label: 'Hard',
@@ -113,7 +113,7 @@ function App() {
             const latest = stats[item.user][stats[item.user].length - 1];
             return latest?.hard ?? 0;
           }),
-          backgroundColor: '#ef4444',
+          backgroundColor: '#2f9f5f',
         },
       ],
     };
@@ -154,21 +154,21 @@ function App() {
               responsive: true,
               maintainAspectRatio: false,
               plugins: {
-                legend: { position: 'bottom', labels: { color: '#d4c7f6' } },
+                legend: { position: 'bottom', labels: { color: '#c8ffe0' } },
                 tooltip: {
-                  backgroundColor: '#1e1231',
-                  borderColor: '#4c1d95',
+                  backgroundColor: '#0f3a28',
+                  borderColor: '#1aa364',
                   borderWidth: 1,
                 },
               },
               scales: {
                 x: {
-                  ticks: { color: '#d4c7f6' },
-                  grid: { color: 'rgba(212, 199, 246, 0.1)' },
+                  ticks: { color: '#c8ffe0' },
+                  grid: { color: 'rgba(200, 255, 224, 0.1)' },
                 },
                 y: {
-                  ticks: { color: '#d4c7f6', stepSize: 10 },
-                  grid: { color: 'rgba(212, 199, 246, 0.16)' },
+                  ticks: { color: '#c8ffe0', stepSize: 10 },
+                  grid: { color: 'rgba(200, 255, 224, 0.16)' },
                   beginAtZero: true,
                 },
               },
@@ -205,23 +205,23 @@ function App() {
               responsive: true,
               maintainAspectRatio: false,
               plugins: {
-                legend: { position: 'bottom', labels: { color: '#d4c7f6' } },
+                legend: { position: 'bottom', labels: { color: '#c8ffe0' } },
                 tooltip: {
-                  backgroundColor: '#1e1231',
-                  borderColor: '#4c1d95',
+                  backgroundColor: '#0f3a28',
+                  borderColor: '#1aa364',
                   borderWidth: 1,
                 },
               },
               scales: {
                 x: {
                   stacked: true,
-                  ticks: { color: '#d4c7f6' },
+                  ticks: { color: '#c8ffe0' },
                   grid: { display: false },
                 },
                 y: {
                   stacked: true,
-                  ticks: { color: '#d4c7f6', stepSize: 10 },
-                  grid: { color: 'rgba(212, 199, 246, 0.16)' },
+                  ticks: { color: '#c8ffe0', stepSize: 10 },
+                  grid: { color: 'rgba(200, 255, 224, 0.16)' },
                   beginAtZero: true,
                 },
               },
