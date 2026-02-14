@@ -6,11 +6,11 @@
 
 .leaderboard-panel,
 .analysis-panel {
-  background: rgba(6, 42, 28, 0.78);
-  border: 1px solid rgba(122, 242, 173, 0.26);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 16px;
   padding: 1.6rem;
-  box-shadow: 0 24px 50px rgba(1, 12, 8, 0.55);
+  box-shadow: 0 20px 45px rgba(4, 2, 10, 0.52);
 }
 
 .analysis-panel {
@@ -21,10 +21,10 @@ h1,
 h2 {
   margin: 0;
   text-align: center;
-  color: #d8ffe5;
+  color: var(--text-main);
   letter-spacing: 0.04em;
-  font-family: 'Pacifico', cursive;
-  font-weight: 400;
+  font-family: 'Sora', 'Space Grotesk', sans-serif;
+  font-weight: 600;
 }
 
 h1 {
@@ -38,9 +38,9 @@ h2 {
 .subtitle {
   margin: 0.4rem 0 1.1rem;
   text-align: center;
-  color: #9be6be;
+  color: var(--text-muted);
   font-size: 0.95rem;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .leaderboard-grid {
@@ -50,26 +50,26 @@ h2 {
 }
 
 .leaderboard-card {
-  background: linear-gradient(165deg, rgba(19, 92, 59, 0.58), rgba(7, 47, 30, 0.84));
-  border: 1px solid rgba(161, 255, 201, 0.24);
+  background: linear-gradient(165deg, rgba(37, 24, 69, 0.9), var(--surface-soft));
+  border: 1px solid rgba(173, 130, 255, 0.26);
   border-radius: 12px;
   padding: 0.9rem;
   text-align: left;
 }
 
 .card-rank {
-  color: #9bf0bf;
+  color: #c8b5ff;
   font-size: 0.82rem;
 }
 
 .card-name {
-  color: #f1fff7;
+  color: #f4eeff;
   font-weight: 700;
   margin-top: 0.12rem;
 }
 
 .card-total {
-  color: #b8ffd5;
+  color: var(--accent-strong);
   font-size: 1.65rem;
   font-weight: 800;
   line-height: 1.2;
@@ -80,19 +80,24 @@ h2 {
   display: flex;
   justify-content: space-between;
   margin-top: 0.48rem;
-  color: #86dcae;
+  color: #b7a6db;
   font-size: 0.82rem;
 }
 
 .chart-wrap {
   height: 300px;
   margin-top: 0.35rem;
+  overflow: hidden;
+}
+
+.chart-wrap canvas {
+  max-width: 100%;
 }
 
 .helper-note {
   margin: 0.7rem 0 0;
   text-align: center;
-  color: #8fe0b3;
+  color: var(--text-muted);
   font-size: 0.86rem;
 }
 
@@ -101,7 +106,7 @@ h2 {
   display: grid;
   place-items: center;
   text-align: center;
-  color: #bcffd8;
+  color: var(--text-main);
   padding: 2rem;
 }
 

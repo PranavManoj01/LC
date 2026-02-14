@@ -17,6 +17,7 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarEleme
 
 type ProgressEntry = {
   date: string;
+  timestamp?: string;
   count: number;
   easy?: number;
   medium?: number;
@@ -25,16 +26,62 @@ type ProgressEntry = {
 
 type Stats = Record<string, ProgressEntry[]>;
 
+const getEntryKey = (entry: ProgressEntry): string => entry.timestamp ?? entry.date;
+
+const toMs = (value: string): number => {
+  const time = Date.parse(value);
+  if (Number.isNaN(time)) {
+    const fallback = Date.parse(`${value}T00:00:00Z`);
+    return Number.isNaN(fallback) ? 0 : fallback;
+  }
+  return time;
+};
+
 function App() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/stats.json')
-      .then(res => res.json())
-      .then(data => setStats(data))
-      .catch(err => console.error('Error loading stats:', err))
-      .finally(() => setLoading(false));
+    let isMounted = true;
+
+    const loadStats = async (showLoader: boolean) => {
+      if (showLoader) {
+        setLoading(true);
+      }
+
+      try {
+        const response = await fetch(`/stats.json?t=${Date.now()}`, {
+          cache: 'no-store',
+          headers: {
+            Pragma: 'no-cache',
+            'Cache-Control': 'no-cache',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch stats: ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (isMounted) {
+          setStats(data);
+        }
+      } catch (err) {
+        console.error('Error loading stats:', err);
+      } finally {
+        if (showLoader && isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void loadStats(true);
+    const intervalId = window.setInterval(() => void loadStats(false), 60000);
+
+    return () => {
+      isMounted = false;
+      window.clearInterval(intervalId);
+    };
   }, []);
 
   const leaderboard = useMemo(() => {
@@ -49,7 +96,7 @@ function App() {
         return {
           user,
           latestCount: latest?.count ?? 0,
-          lastUpdated: latest?.date ?? '-',
+          lastUpdated: latest?.timestamp ?? latest?.date ?? '-',
           gain,
         };
       })
@@ -60,15 +107,15 @@ function App() {
     if (!stats) return null;
 
     const labels = Array.from(
-      new Set(Object.values(stats).flatMap(entries => entries.map(entry => entry.date))),
-    ).sort((a, b) => a.localeCompare(b));
+      new Set(Object.values(stats).flatMap(entries => entries.map(entry => getEntryKey(entry)))),
+    ).sort((a, b) => toMs(a) - toMs(b));
 
-    const lineColors = ['#9bf6c4', '#74e6ad', '#4fd695', '#2fbf7b', '#1aa364', '#10804d'];
+    const lineColors = ['#b892ff', '#9f7aea', '#805ad5', '#6b46c1', '#553c9a', '#44337a'];
 
     return {
       labels,
       datasets: Object.entries(stats).map(([user, entries], index) => {
-        const byDate = new Map(entries.map(item => [item.date, item.count]));
+        const byDate = new Map(entries.map(item => [getEntryKey(item), item.count]));
 
         return {
           label: user,
@@ -80,6 +127,7 @@ function App() {
           spanGaps: true,
           pointRadius: 3,
           pointHoverRadius: 4,
+          clip: 12,
         };
       }),
     };
@@ -97,7 +145,7 @@ function App() {
             const latest = stats[item.user][stats[item.user].length - 1];
             return latest?.easy ?? 0;
           }),
-          backgroundColor: '#6be19d',
+          backgroundColor: '#9f7aea',
         },
         {
           label: 'Medium',
@@ -105,7 +153,7 @@ function App() {
             const latest = stats[item.user][stats[item.user].length - 1];
             return latest?.medium ?? 0;
           }),
-          backgroundColor: '#b8de53',
+          backgroundColor: '#7f5ed9',
         },
         {
           label: 'Hard',
@@ -113,7 +161,7 @@ function App() {
             const latest = stats[item.user][stats[item.user].length - 1];
             return latest?.hard ?? 0;
           }),
-          backgroundColor: '#2f9f5f',
+          backgroundColor: '#5f3fbf',
         },
       ],
     };
@@ -154,21 +202,38 @@ function App() {
               responsive: true,
               maintainAspectRatio: false,
               plugins: {
-                legend: { position: 'bottom', labels: { color: '#c8ffe0' } },
+                legend: { position: 'bottom', labels: { color: '#d8cff7' } },
                 tooltip: {
-                  backgroundColor: '#0f3a28',
-                  borderColor: '#1aa364',
+                  backgroundColor: '#1b1135',
+                  borderColor: '#6b46c1',
                   borderWidth: 1,
+                },
+              },
+              layout: {
+                padding: {
+                  left: 8,
+                  right: 12,
+                  top: 8,
+                  bottom: 4,
                 },
               },
               scales: {
                 x: {
-                  ticks: { color: '#c8ffe0' },
-                  grid: { color: 'rgba(200, 255, 224, 0.1)' },
+                  ticks: {
+                    color: '#d8cff7',
+                    autoSkip: true,
+                    maxTicksLimit: 8,
+                  },
+                  grid: { color: 'rgba(216, 207, 247, 0.12)' },
                 },
                 y: {
-                  ticks: { color: '#c8ffe0', stepSize: 10 },
-                  grid: { color: 'rgba(200, 255, 224, 0.16)' },
+                  grace: '5%',
+                  ticks: {
+                    color: '#d8cff7',
+                    stepSize: 10,
+                    precision: 0,
+                  },
+                  grid: { color: 'rgba(216, 207, 247, 0.18)' },
                   beginAtZero: true,
                 },
               },
@@ -205,23 +270,40 @@ function App() {
               responsive: true,
               maintainAspectRatio: false,
               plugins: {
-                legend: { position: 'bottom', labels: { color: '#c8ffe0' } },
+                legend: { position: 'bottom', labels: { color: '#d8cff7' } },
                 tooltip: {
-                  backgroundColor: '#0f3a28',
-                  borderColor: '#1aa364',
+                  backgroundColor: '#1b1135',
+                  borderColor: '#6b46c1',
                   borderWidth: 1,
+                },
+              },
+              layout: {
+                padding: {
+                  left: 8,
+                  right: 12,
+                  top: 8,
+                  bottom: 4,
                 },
               },
               scales: {
                 x: {
                   stacked: true,
-                  ticks: { color: '#c8ffe0' },
+                  ticks: {
+                    color: '#d8cff7',
+                    autoSkip: true,
+                    maxTicksLimit: 8,
+                  },
                   grid: { display: false },
                 },
                 y: {
                   stacked: true,
-                  ticks: { color: '#c8ffe0', stepSize: 10 },
-                  grid: { color: 'rgba(200, 255, 224, 0.16)' },
+                  grace: '5%',
+                  ticks: {
+                    color: '#d8cff7',
+                    stepSize: 10,
+                    precision: 0,
+                  },
+                  grid: { color: 'rgba(216, 207, 247, 0.18)' },
                   beginAtZero: true,
                 },
               },

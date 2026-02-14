@@ -108,6 +108,12 @@ def normalize_history(history):
         for entry in entries:
             if not isinstance(entry, dict):
                 continue
+            if 'date' not in entry:
+                entry['date'] = datetime.datetime.utcnow().strftime('%Y-%m-%d')
+                normalized = True
+            if 'timestamp' not in entry:
+                entry['timestamp'] = f"{entry['date']}T00:00:00Z"
+                normalized = True
             if 'count' not in entry:
                 entry['count'] = 0
                 normalized = True
@@ -130,8 +136,10 @@ def main():
 
     updated = normalize_history(history)
 
-    today = datetime.datetime.now().strftime('%Y-%m-%d')
-    print(f"--- Running Update for {today} ---")
+    now_utc = datetime.datetime.utcnow().replace(microsecond=0)
+    today = now_utc.strftime('%Y-%m-%d')
+    current_timestamp = f"{now_utc.isoformat()}Z"
+    print(f"--- Running Update for {today} @ {current_timestamp} ---")
 
     # 2. Fetch new data
     for user in FRIENDS:
@@ -141,25 +149,20 @@ def main():
             if user not in history:
                 history[user] = []
             
-            # Check if we already have an entry for today to avoid duplicates
             last_entry = history[user][-1] if history[user] else None
-            
-            if last_entry and last_entry['date'] == today:
-                if (
-                    last_entry.get('count') != solved['count']
-                    or last_entry.get('easy') != solved['easy']
-                    or last_entry.get('medium') != solved['medium']
-                    or last_entry.get('hard') != solved['hard']
-                ):
-                    last_entry['count'] = solved['count']
-                    last_entry['easy'] = solved['easy']
-                    last_entry['medium'] = solved['medium']
-                    last_entry['hard'] = solved['hard']
-                    updated = True
-                    print(f"Updated {user} (Same Day): {solved['count']}")
-            else:
+
+            has_changed = (
+                not last_entry
+                or last_entry.get('count') != solved['count']
+                or last_entry.get('easy') != solved['easy']
+                or last_entry.get('medium') != solved['medium']
+                or last_entry.get('hard') != solved['hard']
+            )
+
+            if has_changed:
                 history[user].append({
                     "date": today,
+                    "timestamp": current_timestamp,
                     "count": solved['count'],
                     "easy": solved['easy'],
                     "medium": solved['medium'],
