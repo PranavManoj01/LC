@@ -5,14 +5,16 @@
       "count": 43,
       "easy": 20,
       "medium": 21,
-      "hard": 2
+      "hard": 2,
+      "timestamp": "2026-02-13T00:00:00Z"
     },
     {
       "date": "2026-02-14",
       "count": 43,
       "easy": 20,
       "medium": 21,
-      "hard": 2
+      "hard": 2,
+      "timestamp": "2026-02-14T00:00:00Z"
     }
   ],
   "khizer12": [
@@ -21,14 +23,16 @@
       "count": 180,
       "easy": 52,
       "medium": 106,
-      "hard": 22
+      "hard": 22,
+      "timestamp": "2026-02-13T00:00:00Z"
     },
     {
       "date": "2026-02-14",
       "count": 180,
       "easy": 52,
       "medium": 106,
-      "hard": 22
+      "hard": 22,
+      "timestamp": "2026-02-14T00:00:00Z"
     }
   ],
   "khrshtt": [
@@ -37,14 +41,16 @@
       "count": 107,
       "easy": 51,
       "medium": 52,
-      "hard": 4
+      "hard": 4,
+      "timestamp": "2026-02-13T00:00:00Z"
     },
     {
       "date": "2026-02-14",
       "count": 107,
       "easy": 51,
       "medium": 52,
-      "hard": 4
+      "hard": 4,
+      "timestamp": "2026-02-14T00:00:00Z"
     }
   ],
   "theLumberJack79": [
@@ -53,14 +59,16 @@
       "count": 92,
       "easy": 39,
       "medium": 50,
-      "hard": 3
+      "hard": 3,
+      "timestamp": "2026-02-13T00:00:00Z"
     },
     {
       "date": "2026-02-14",
       "count": 92,
       "easy": 39,
       "medium": 50,
-      "hard": 3
+      "hard": 3,
+      "timestamp": "2026-02-14T00:00:00Z"
     }
   ]
 }
