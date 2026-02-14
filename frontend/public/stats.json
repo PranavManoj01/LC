@@ -6,11 +6,25 @@
       "easy": 20,
       "medium": 21,
       "hard": 2
+    },
+    {
+      "date": "2026-02-14",
+      "count": 43,
+      "easy": 20,
+      "medium": 21,
+      "hard": 2
     }
   ],
   "khizer12": [
     {
       "date": "2026-02-13",
+      "count": 180,
+      "easy": 52,
+      "medium": 106,
+      "hard": 22
+    },
+    {
+      "date": "2026-02-14",
       "count": 180,
       "easy": 52,
       "medium": 106,
@@ -24,11 +38,25 @@
       "easy": 51,
       "medium": 52,
       "hard": 4
+    },
+    {
+      "date": "2026-02-14",
+      "count": 107,
+      "easy": 51,
+      "medium": 52,
+      "hard": 4
     }
   ],
   "theLumberJack79": [
     {
       "date": "2026-02-13",
+      "count": 92,
+      "easy": 39,
+      "medium": 50,
+      "hard": 3
+    },
+    {
+      "date": "2026-02-14",
       "count": 92,
       "easy": 39,
       "medium": 50,
